@@ -1,0 +1,199 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Retro Terminal Design System - Inspired by classic computing aesthetic */
+
+@layer base {
+  :root {
+    /* Retro Terminal Theme - Always Dark */
+    --background: 220 13% 9%; /* Dark terminal background */
+    --foreground: 192 100% 95%; /* Bright text */
+
+    --card: 220 13% 12%;
+    --card-foreground: 192 100% 95%;
+
+    --popover: 220 13% 12%;
+    --popover-foreground: 192 100% 95%;
+
+    --primary: 210 100% 63%; /* Bright blue accent */
+    --primary-foreground: 220 13% 9%;
+
+    --secondary: 220 13% 22%; /* Button color */
+    --secondary-foreground: 192 100% 95%;
+
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 65%;
+
+    --accent: 351 69% 58%; /* Pink/red accent */
+    --accent-foreground: 192 100% 95%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 192 100% 95%;
+
+    --border: 220 13% 15%;
+    --input: 192 100% 95%;
+    --ring: 210 100% 63%;
+
+    --radius: 0rem; /* Sharp corners for retro feel */
+
+    /* Retro button colors */
+    --button-light: 220 13% 35%;
+    --button-dark: 220 13% 18%;
+    --button-hover: 220 13% 28%;
+    
+    /* Video overlay colors */
+    --video-overlay: 220 13% 9% / 0.9;
+    --video-overlay-text: 192 100% 95%;
+    
+    /* ASCII art gradient */
+    --ascii-gradient: linear-gradient(135deg, hsl(351 69% 58%), hsl(351 69% 70%));
+    
+    /* Hover effects */
+    --hover-glow: 0 0 20px hsl(210 100% 63% / 0.4);
+    --video-hover-scale: 1.02;
+    
+    /* Animation timing */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 220 13% 9%;
+    --sidebar-foreground: 192 100% 95%;
+    --sidebar-primary: 210 100% 63%;
+    --sidebar-primary-foreground: 220 13% 9%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 192 100% 95%;
+    --sidebar-border: 220 13% 15%;
+    --sidebar-ring: 210 100% 63%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-mono;
+  }
+}
+
+@layer utilities {
+  /* ASCII art animation */
+  .ascii-glow {
+    background: var(--ascii-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow {
+    from { filter: drop-shadow(0 0 10px hsl(351 69% 58% / 0.5)); }
+    to { filter: drop-shadow(0 0 20px hsl(351 69% 58% / 0.8)); }
+  }
+  
+  /* 3D Retro Button Effects */
+  .retro-3d-button {
+    background-color: hsl(var(--button-light));
+    border-top: 3px solid hsl(var(--foreground));
+    border-left: 3px solid hsl(var(--foreground));
+    border-right: 3px solid hsl(var(--button-dark));
+    border-bottom: 3px solid hsl(var(--button-dark));
+    box-shadow: 0 0 0 3px hsl(var(--background));
+    transition: var(--transition-smooth);
+    font-weight: 600;
+    text-shadow: 2px 2px 4px hsl(var(--background));
+  }
+  
+  .retro-3d-button:hover {
+    background-color: hsl(var(--button-hover));
+    cursor: pointer;
+  }
+  
+  .retro-3d-button:active {
+    border-left: 3px solid hsl(var(--button-dark));
+    border-top: 3px solid hsl(var(--button-dark));
+    border-right: 3px solid hsl(var(--foreground));
+    border-bottom: 3px solid hsl(var(--foreground));
+    transform: translate(2px, 2px);
+    box-shadow: inset 3px 3px hsl(var(--background));
+  }
+  
+  /* CRT Scanlines Effect */
+  .crt-scanlines::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    pointer-events: none;
+    background: linear-gradient(
+      transparent 66%,
+      rgba(0, 0, 0, 0.15) 33%
+    ) 0 0/100% 5px;
+    animation: scanlines-anim 1s linear infinite;
+  }
+  
+  @keyframes scanlines-anim {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 15px; }
+  }
+  
+  /* Retro title effect */
+  .retro-title {
+    font-size: 7em;
+    font-weight: 600;
+    color: hsl(var(--accent));
+    -webkit-text-stroke: 0.1rem hsl(var(--foreground));
+    text-shadow: 0.3rem 0.3rem 5px hsl(var(--background));
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.25));
+  }
+  
+  /* Video hover effects */
+  .video-card {
+    transition: var(--transition-smooth);
+  }
+  
+  .video-card:hover {
+    transform: scale(var(--video-hover-scale));
+    box-shadow: var(--hover-glow);
+  }
+  
+  .video-overlay {
+    background: hsl(var(--video-overlay));
+    color: hsl(var(--video-overlay-text));
+    transition: var(--transition-smooth);
+  }
+  
+  /* Pixelated image rendering for retro feel */
+  .pixelated {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Retro button styles */
+  .retro-button {
+    transition: var(--transition-bounce);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .retro-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .retro-button:hover::before {
+    left: 100%;
+  }
+}
