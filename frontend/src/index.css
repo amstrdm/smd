@@ -210,4 +210,24 @@
       opacity: 0;
     }
   }
+
+  .loading-line {
+  /* You can use your theme's primary color here */
+  background: linear-gradient(
+    to right,
+    transparent,
+    hsl(var(--primary)), /* Using Tailwind's primary color variable */
+    transparent
+  );
+  animation: slide 1.5s linear infinite;
+}
+
+  @keyframes slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
 }
