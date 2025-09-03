@@ -2,7 +2,7 @@ import os
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from tinydb import Query, TinyDB
+from utils.db_utils import get_link_by_preview_id
 
 router = APIRouter()
 
@@ -11,10 +11,6 @@ PREVIEW_DIR = os.path.join(current_dir, "preview_videos")
 
 os.makedirs(PREVIEW_DIR, exist_ok=True)
 
-db_folder = os.path.join(os.path.dirname(current_dir), "db")
-db_path = os.path.join(db_folder, "database.json")
-db = TinyDB(db_path)
-
 
 @router.get("/preview/{preview_id}")
 def get_preview(preview_id: str):
@@ -22,11 +18,15 @@ def get_preview(preview_id: str):
     Serves a preview video file based on its unique ID
     """
 
-    Link = Query()
-    record = db.get(Link.preview_id == preview_id)
+    record = get_link_by_preview_id(preview_id)
 
     if not record:
         raise HTTPException(status_code=404, detail="Preview ID not found")
+
+    if record["status"] == "queued":
+        raise HTTPException(
+            status_code=202, detail="Preview is in queue to be processed"
+        )
 
     if record["status"] == "processing":
         raise HTTPException(status_code=409, detail="Preview is still being processed")
