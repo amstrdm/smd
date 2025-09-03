@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { Upload, Link, Plus } from "lucide-react";
+import { AxiosError } from "axios"; // Import AxiosError for better type checking
 import { Button } from "./ui/button";
 import { useToast } from "../hooks/use-toast";
 import { Input } from "./ui/input";
-import { DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog"; // Import Dialog components for structure
+import { DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
+import Glitter from "./ui/glitter";
+import api from "../lib/api";
 
-// Add a prop to handle closing the modal on success
 const VideoUpload = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) => {
   const [videoUrl, setVideoUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showGlitter, setShowGlitter] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,24 +20,68 @@ const VideoUpload = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) => {
 
     setIsLoading(true);
 
-    // Simulate upload process
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      await api.post("/upload", { url: videoUrl }); // Using 'url' as fixed before
 
-    toast({
-      title: "Video Added Successfully!",
-      description: "Your video has been processed and added to the collection.",
-    });
+      // --- Success ---
+      toast({
+        title: "Video Added Successfully!",
+        description: "Your video is now in the collection.",
+      });
 
-    setVideoUrl("");
-    setIsLoading(false);
+      setShowGlitter(true);
+      setTimeout(() => setShowGlitter(false), 2500);
 
-    // Call the callback function to close the modal
-    onUploadSuccess?.();
+      setVideoUrl("");
+      onUploadSuccess?.();
+    } catch (error) {
+      console.error("Upload failed:", error);
+
+      let title = "Upload Failed";
+      let description = "An unexpected error occurred.";
+
+      // Check if the error is an Axios error with a response from the server
+      if (error instanceof AxiosError && error.response) {
+        const status = error.response.status;
+        const responseData = error.response.data;
+
+        // Set a more specific title with the status code
+        title = `Error: ${status}`;
+
+        // Extract the detail message from the FastAPI response body
+        if (responseData && responseData.detail) {
+          // Handles FastAPI validation errors (which are arrays of objects)
+          if (
+            Array.isArray(responseData.detail) &&
+            responseData.detail[0]?.msg
+          ) {
+            description = responseData.detail[0].msg;
+          }
+          // Handles simple string detail messages
+          else if (typeof responseData.detail === "string") {
+            description = responseData.detail;
+          }
+        }
+      } else if (error instanceof Error) {
+        // Handles network errors where there is no response from the server
+        description = error.message;
+      }
+
+      toast({
+        title: title,
+        description: description,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // ... the rest of your JSX remains exactly the same
   return (
     <>
       <DialogHeader>
+        {showGlitter && <Glitter />}
         <DialogTitle className="flex items-center gap-2 text-foreground">
           <span className="text-primary">&gt;</span>
           <Upload className="w-5 h-5 text-primary" />
@@ -46,6 +93,7 @@ const VideoUpload = ({ onUploadSuccess }: { onUploadSuccess?: () => void }) => {
         </DialogDescription>
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        {/* ...form JSX... */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
