@@ -1,19 +1,20 @@
 import { useState } from "react";
+import { Outlet } from "react-router-dom"; // Import Outlet
 import Header from "../components/Header";
 import VideoUpload from "../components/VideoUpload";
-import VideoGrid from "../components/VideoGrid";
 import { Dialog, DialogContent } from "../components/ui/dialog";
 
-const Index = () => {
+const Layout = () => {
+  // Renamed from Index
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background crt-scanlines">
       <Header onUploadClick={() => setIsUploadModalOpen(true)} />
 
-      {/* Main content wrapper with top padding */}
+      {/* Main content now renders the active route */}
       <main className="container py-8">
-        <VideoGrid />
+        <Outlet /> {/* VideoGrid will be rendered here by the router */}
       </main>
 
       <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
@@ -25,12 +26,16 @@ const Index = () => {
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 border-t border-border/50">
         <div className="text-center text-muted-foreground text-sm">
-          <p>&gt; SMD - Super Media Displayer v1.0</p>
-          <p className="mt-1">Built with retro vibes and modern tech</p>
+          <p>&gt; SMD - Sonic Media Displayer v1.0</p>
+          <p className="mt-1 justify-center max-w-xl mx-auto">
+            Sonic don’t diversify your portfolio with derivatives to shield
+            against downside risk while speculating on the Large Swine futures
+            market!
+          </p>
         </div>
       </footer>
     </div>
   );
 };
 
-export default Index;
+export default Layout;
