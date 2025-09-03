@@ -1,37 +1,48 @@
 import sonicPixel from "../assets/fortnite-dance-sonic.gif";
 import { Button } from "./ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 
-const Header = ({ onUploadClick }: { onUploadClick: () => void }) => {
+// No changes to props
+type HeaderProps = {
+  onUploadClick: () => void;
+  onSettingsClick: () => void;
+};
+
+const Header = ({ onUploadClick, onSettingsClick }: HeaderProps) => {
   return (
     <header className="sticky top-0 z-50 flex h-20 items-center border-b border-border/50 bg-card">
       <div className="container grid w-full grid-cols-3 items-center px-4">
-        {/* Left Column: Kept empty for spacing */}
-        <div className="justify-self-start"></div>
+        {/* Left Column: Settings Button (Updated) */}
+        <div className="justify-self-start">
+          <Button
+            onClick={onSettingsClick}
+            className="retro-3d-button bg-transparent hover:bg-transparent"
+          >
+            <Settings className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Settings</span>
+          </Button>
+        </div>
 
-        {/* Center Column: The logo group with absolute positioning for Sonic */}
-        {/* CHANGE: Added a relative wrapper for SMD! and Sonic to allow absolute positioning */}
+        {/* Center Column: Logo */}
         <div className="relative flex items-center justify-self-center">
           <a href="/" className="text-decoration-none">
-            {/* CHANGE: Added back the '!' */}
             <div className="retro-title text-5xl leading-tight">SMD</div>
           </a>
           <img
             src={sonicPixel}
             alt="Pixelated Sonic"
-            // CHANGE: Absolute positioning for Sonic
-            className="pixelated w-10 h-10 absolute bottom-11 -right-4" // Adjusted `right` for overlap
-            style={{ transform: "translateY(25%)" }} // Fine-tune vertical position
+            className="pixelated absolute -right-4 bottom-11 h-10 w-10"
+            style={{ transform: "translateY(25%)" }}
           />
         </div>
 
-        {/* Right Column: The action button */}
+        {/* Right Column: Add Video Button */}
         <div className="justify-self-end">
           <Button
             onClick={onUploadClick}
             className="retro-3d-button bg-transparent hover:bg-transparent"
           >
-            <Plus className="w-4 h-4 sm:mr-2" />
+            <Plus className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Add Video</span>
           </Button>
         </div>
