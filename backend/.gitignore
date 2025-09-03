@@ -4,3 +4,4 @@ preview_videos/
 tmp/
 venv/
 test/
+*.db
