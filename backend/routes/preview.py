@@ -44,5 +44,13 @@ def get_preview(preview_id: str):
         )
 
     return FileResponse(
-        path=file_path, media_type="video/mp4", filename=f"{preview_id}.mp4"
+        path=file_path,
+        media_type="video/mp4",
+        filename=f"{preview_id}.mp4",
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET",
+            "Access-Control-Allow-Headers": "Content-Type, Range",
+            "Access-Control-Expose-Headers": "Accept-Ranges, Content-Encoding, Content-Length, Content-Range",
+        },
     )
