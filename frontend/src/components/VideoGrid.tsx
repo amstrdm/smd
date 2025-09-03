@@ -50,22 +50,20 @@ const placeholderVideos = [
 const VideoGrid = () => {
   return (
     <section className="container mx-auto px-4 mb-12">
-      <div className="flex items-center gap-2 mb-8">
-        <span className="text-primary font-bold">&gt;</span>
-        <h2 className="text-xl font-bold text-foreground">Video Collection</h2>
-        <div className="flex-1 h-px bg-gradient-to-r from-primary/50 to-transparent ml-4"></div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {placeholderVideos.map((video, index) => (
-          <div
-            key={video.id}
-            className="animate-fade-in"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <VideoCard {...video} />
-          </div>
-        ))}
+      {/* This new wrapper constrains the grid's width and centers it. */}
+      <div className="max-w-5xl mx-auto">
+        {/* Updated grid classes for a 2-column layout. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          {placeholderVideos.map((video, index) => (
+            <div
+              key={video.id}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <VideoCard {...video} />
+            </div>
+          ))}
+        </div>
       </div>
 
       {placeholderVideos.length === 0 && (
