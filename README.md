@@ -11,6 +11,8 @@
 ### Index Page
 
 - search
+- remove video
+- let user enter backend url and password into frontend
 
 ## Lazy Todo
 
@@ -20,7 +22,7 @@ stuff that I'm aware of and should be done at some point but am too lazy to do r
 
   - Install httpx for async requests: pip install httpx.
 
-  - Convert your functions to async def and use await for network calls.
+  - Convert functions to async def and use await for network calls.
 
   - Use asyncio versions of libraries where possible (e.g., playwright.async_api).
 
