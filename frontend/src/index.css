@@ -120,27 +120,7 @@
     box-shadow: inset 3px 3px hsl(var(--background));
   }
   
-  /* CRT Scanlines Effect */
-  .crt-scanlines::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1000;
-    pointer-events: none;
-    background: linear-gradient(
-      transparent 66%,
-      rgba(0, 0, 0, 0.15) 33%
-    ) 0 0/100% 5px;
-    animation: scanlines-anim 1s linear infinite;
-  }
-  
-  @keyframes scanlines-anim {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 15px; }
-  }
+
   
   /* Retro title effect */
   .retro-title {

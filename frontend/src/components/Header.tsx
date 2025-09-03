@@ -1,35 +1,40 @@
 import sonicPixel from "../assets/fortnite-dance-sonic.gif";
+import { Button } from "./ui/button";
+import { Plus } from "lucide-react";
 
-const Header = () => {
+const Header = ({ onUploadClick }: { onUploadClick: () => void }) => {
   return (
-    <header className="w-full py-8 mb-12 text-center">
-      <div className="container mx-auto px-4">
-        {/* ASCII Art Logo */}
-        <div className="retro-title text-center mb-4 leading-tight">SMD!</div>
+    <header className="sticky top-0 z-50 flex h-20 items-center border-b border-border/50 bg-card">
+      <div className="container grid w-full grid-cols-3 items-center px-4">
+        {/* Left Column: Kept empty for spacing */}
+        <div className="justify-self-start"></div>
 
-        <div className="flex items-center justify-center gap-4 mb-6">
+        {/* Center Column: The logo group with absolute positioning for Sonic */}
+        {/* CHANGE: Added a relative wrapper for SMD! and Sonic to allow absolute positioning */}
+        <div className="relative flex items-center justify-self-center">
+          <a href="/" className="text-decoration-none">
+            {/* CHANGE: Added back the '!' */}
+            <div className="retro-title text-5xl leading-tight">SMD</div>
+          </a>
           <img
             src={sonicPixel}
             alt="Pixelated Sonic"
-            className="pixelated animate-pixel-bounce w-16 h-16"
-          />
-          <div className="text-center">
-            <h1 className="text-xl md:text-2xl font-bold text-primary">
-              Super Media Displayer
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              &gt; Upload, browse, and preview your favorite videos
-            </p>
-          </div>
-          <img
-            src={sonicPixel}
-            alt="Pixelated Sonic"
-            className="pixelated animate-pixel-bounce w-16 h-16 scale-x-[-1]"
-            style={{ animationDelay: "1s" }}
+            // CHANGE: Absolute positioning for Sonic
+            className="pixelated w-10 h-10 absolute bottom-11 -right-4" // Adjusted `right` for overlap
+            style={{ transform: "translateY(25%)" }} // Fine-tune vertical position
           />
         </div>
 
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+        {/* Right Column: The action button */}
+        <div className="justify-self-end">
+          <Button
+            onClick={onUploadClick}
+            className="retro-3d-button bg-transparent hover:bg-transparent"
+          >
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Add Video</span>
+          </Button>
+        </div>
       </div>
     </header>
   );
