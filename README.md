@@ -13,6 +13,8 @@
 - search
 - remove video
 - let user enter backend url and password into frontend
+- configure backend so that you can configure it to actually have multiple databases. Essentially multiple content paths with databases and preview videos that are then exposed through different routes. That way a user can hit that specific route and will be able to interact with that specific database.
+- add ability to edit an entry
 
 ## Lazy Todo
 
