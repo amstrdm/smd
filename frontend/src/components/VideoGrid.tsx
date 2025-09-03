@@ -59,6 +59,13 @@ const VideoGrid = () => {
     };
   };
 
+  const handleDeleteVideo = (idToDelete: string) => {
+    // Update the state to remove the video with the matching ID
+    setVideos((currentVideos) =>
+      currentVideos.filter((video) => video.id !== idToDelete)
+    );
+  };
+
   const fetchVideos = useCallback(async () => {
     window.scrollTo({ top: 0, behavior: "instant" });
 
@@ -129,7 +136,7 @@ const VideoGrid = () => {
         className="animate-fade-in"
         style={{ animationDelay: `${index * 0.1}s` }}
       >
-        <VideoCard {...video} />
+        <VideoCard {...video} onDelete={handleDeleteVideo} />
       </div>
     ));
   };
