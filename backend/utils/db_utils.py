@@ -138,3 +138,19 @@ def count_ready_links():
         return count_dict["COUNT(*)"] if count_dict else 0
     finally:
         conn.close()
+
+
+def delete_link_by_preview_id(preview_id: str):
+    """Deletes a record by its preview_id and returns the deleted record."""
+    # First, get the record so we know the preview_path for file deletion
+    record_to_delete = get_link_by_preview_id(preview_id)
+    if not record_to_delete:
+        return None
+
+    conn = get_db_connection()
+    try:
+        conn.execute("DELETE FROM videos WHERE preview_id = ?", (preview_id,))
+        conn.commit()
+        return record_to_delete
+    finally:
+        conn.close()
