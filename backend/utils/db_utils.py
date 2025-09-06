@@ -32,7 +32,8 @@ def add_link(url: str, preview_id: str):
     """Inserts a new link into the database with a 'queued' status."""
     conn = get_db_connection()
     try:
-        conn.execute(
+        cursor = conn.cursor()
+        cursor.execute(
             "INSERT INTO videos (url, preview_id, status) VALUES (?, ?, ?)",
             (url, preview_id, "queued"),
         )
@@ -69,7 +70,8 @@ def update_link_to_ready(
     """Updates a link's status to 'ready' and populates its data."""
     conn = get_db_connection()
     try:
-        conn.execute(
+        cursor = conn.cursor()
+        cursor.execute(
             """
             UPDATE videos 
             SET status = 'ready', title = ?, poster_url = ?, preview_path = ?
@@ -77,7 +79,13 @@ def update_link_to_ready(
             """,
             (title, poster_url, preview_path, preview_id),
         )
+        video_id = cursor.lastrowid
         conn.commit()
+        if title:
+            cursor.execute(
+                "INSERT INTO videos_fts(rowid, title) VALUES(?, ?)", (video_id, title)
+            )
+            conn.commit()
     finally:
         conn.close()
 
@@ -152,5 +160,24 @@ def delete_link_by_preview_id(preview_id: str):
         conn.execute("DELETE FROM videos WHERE preview_id = ?", (preview_id,))
         conn.commit()
         return record_to_delete
+    finally:
+        conn.close()
+
+
+def search_videos_by_title(query: str):
+    """Performs a full text search on titles of the video table and returns the results"""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT  v.id, v.title, v.url, v.poster_url, v.preview_path
+            FROM videos_fts f
+            JOIN videos v ON v.id = f.rowid
+            WHERE videos_fts MATCH ?
+        """,
+            (query,),
+        )
+        return cursor.fetchall()
     finally:
         conn.close()
