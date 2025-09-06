@@ -14,6 +14,8 @@ const App = () => (
           <Route path="random" element={<VideoGrid />} />
           <Route path="latest" element={<Navigate to="/latest/1" replace />} />
           <Route path="latest/:pageNumber" element={<VideoGrid />} />
+          <Route path="search" element={<VideoGrid />} />
+          <Route path="search/:query" element={<VideoGrid />} />
         </Route>
       </Routes>
     </BrowserRouter>

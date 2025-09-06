@@ -1,14 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
-// Import hooks and the Link component from react-router-dom
 import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
-import { RefreshCw, ArrowLeft, ArrowRight, Shuffle, List } from "lucide-react";
+import {
+  RefreshCw,
+  ArrowLeft,
+  ArrowRight,
+  Shuffle,
+  List,
+  Search,
+} from "lucide-react"; // Import Search icon
 import api from "../lib/api";
 import VideoCard from "./VideoCard";
 import VideoCardSkeleton from "./VideoCardSkeleton";
 import { Button } from "./ui/button";
 import { useToast } from "../hooks/use-toast";
 
-// Define types for the data we expect from the API
 type ApiVideo = {
   url: string;
   title: string;
@@ -17,7 +22,6 @@ type ApiVideo = {
   preview_path: string;
 };
 
-// Define the type for the data we'll use in our component
 type Video = {
   id: string;
   title: string;
@@ -26,7 +30,8 @@ type Video = {
   preview_id: string;
 };
 
-type ViewMode = "random" | "latest";
+// 👇 ADD "search" TO THE VIEWMODE TYPE
+type ViewMode = "random" | "latest" | "search";
 
 const VideoGrid = () => {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -34,20 +39,25 @@ const VideoGrid = () => {
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
 
-  // Get URL parameters and location from react-router-dom
-  const { pageNumber } = useParams<{ pageNumber?: string }>();
+  // 👇 GET THE 'query' PARAM FROM THE URL
+  const { pageNumber, query } = useParams<{
+    pageNumber?: string;
+    query?: string;
+  }>();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Derive mode and page directly from the URL, removing the need for state
+  // 👇 UPDATE MODE DERIVATION LOGIC
   const mode: ViewMode = location.pathname.startsWith("/latest")
     ? "latest"
+    : location.pathname.startsWith("/search")
+    ? "search"
     : "random";
   const currentPage = parseInt(pageNumber || "1", 10);
 
   const mapApiVideoToComponent = (video: ApiVideo): Video => {
+    // ... (This function remains unchanged)
     const thumbnailUrl = video.poster_url || "";
-
     return {
       id: video.preview_id,
       title: video.title,
@@ -60,7 +70,6 @@ const VideoGrid = () => {
   };
 
   const handleDeleteVideo = (idToDelete: string) => {
-    // Update the state to remove the video with the matching ID
     setVideos((currentVideos) =>
       currentVideos.filter((video) => video.id !== idToDelete)
     );
@@ -68,46 +77,51 @@ const VideoGrid = () => {
 
   const fetchVideos = useCallback(async () => {
     window.scrollTo({ top: 0, behavior: "instant" });
-
     setIsLoading(true);
+    setVideos([]); // Clear previous results
+
     try {
       let response;
       if (mode === "random") {
         response = await api.get<ApiVideo[]>("/videos/random");
         setVideos(response.data.map(mapApiVideoToComponent));
         setTotalPages(1);
-      } else {
+      } else if (mode === "latest") {
         response = await api.get(`/videos/latest?page=${currentPage}`);
-        // Ensure you are accessing the correct properties from your API response
         setVideos(response.data.videos.map(mapApiVideoToComponent));
         setTotalPages(response.data.total_pages);
+      } else if (mode === "search") {
+        // Handle search mode
+        if (!query) {
+          // If no query, don't fetch, just show the initial empty state
+          setIsLoading(false);
+          return;
+        }
+        response = await api.get<ApiVideo[]>(`/videos/search?query=${query}`);
+        setVideos(response.data.map(mapApiVideoToComponent));
+        setTotalPages(1); // Assuming search isn't paginated for now
       }
     } catch (error) {
       console.error("Failed to fetch videos:", error);
       toast({
         title: "Failed to Load Videos",
-        description: "Please try refreshing the page.",
+        description: "Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-    // The dependency array now uses the values derived from the URL
-  }, [mode, currentPage, toast]);
+  }, [mode, currentPage, toast, query]); // 👇 ADD 'query' TO DEPENDENCY ARRAY
 
   useEffect(() => {
     fetchVideos();
   }, [fetchVideos]);
 
   useEffect(() => {
-    // Only run this check after the API call is complete and we have a totalPages count
     if (mode === "latest" && totalPages > 0) {
-      // If the current page is greater than the total, redirect to the last page
       if (currentPage > totalPages) {
         navigate(`/latest/${totalPages}`, { replace: true });
-      }
-      // Also handle invalid pages like 0 or negative numbers
-      else if (currentPage < 1) {
+      } else if (currentPage < 1) {
         navigate("/latest/1", { replace: true });
       }
     }
@@ -119,7 +133,35 @@ const VideoGrid = () => {
         <VideoCardSkeleton key={index} />
       ));
     }
+
+    // 👇 ADD SPECIAL MESSAGES FOR SEARCH MODE
     if (videos.length === 0) {
+      if (mode === "search" && !query) {
+        return (
+          <div className="sm:col-span-2 text-center py-16">
+            <div className="text-6xl mb-4 opacity-50">
+              <Search />
+            </div>
+            <p className="text-muted-foreground text-lg">Search for Videos</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              &gt; Use the search bar above to find specific videos
+            </p>
+          </div>
+        );
+      }
+      if (mode === "search" && query) {
+        return (
+          <div className="sm:col-span-2 text-center py-16">
+            <div className="text-6xl mb-4 opacity-50">🧐</div>
+            <p className="text-muted-foreground text-lg">
+              No results for "{query}"
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              &gt; Try searching for something else
+            </p>
+          </div>
+        );
+      }
       return (
         <div className="sm:col-span-2 text-center py-16">
           <div className="text-6xl mb-4 opacity-50">📹</div>
@@ -130,6 +172,7 @@ const VideoGrid = () => {
         </div>
       );
     }
+
     return videos.map((video, index) => (
       <div
         key={video.id}
@@ -144,26 +187,44 @@ const VideoGrid = () => {
   return (
     <section className="container mx-auto px-4 mb-12">
       <div className="max-w-5xl mx-auto">
-        {/* Mode Toggle Buttons now use <Link> for navigation */}
-        <div className="flex justify-center gap-4 mb-8">
-          <Button asChild variant={mode === "random" ? "default" : "secondary"}>
-            <Link to="/random" className="retro-button">
-              <Shuffle className="w-4 h-4 mr-2" /> Random
-            </Link>
-          </Button>
-          <Button asChild variant={mode === "latest" ? "default" : "secondary"}>
-            <Link to="/latest/1" className="retro-button">
-              <List className="w-4 h-4 mr-2" /> Latest
-            </Link>
-          </Button>
-        </div>
+        {/* Mode Toggle Buttons */}
+        {/* 👇 HIDE BUTTONS IN SEARCH MODE TO AVOID CONFUSION */}
+        {mode !== "search" && (
+          <div className="flex justify-center gap-4 mb-8">
+            <Button
+              asChild
+              variant={mode === "random" ? "default" : "secondary"}
+            >
+              <Link to="/random" className="retro-button">
+                <Shuffle className="w-4 h-4 mr-2" /> Random
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant={mode === "latest" ? "default" : "secondary"}
+            >
+              <Link to="/latest/1" className="retro-button">
+                <List className="w-4 h-4 mr-2" /> Latest
+              </Link>
+            </Button>
+          </div>
+        )}
 
-        {/* Video Grid */}
+        {/* 👇 ADD A HEADER FOR SEARCH RESULTS */}
+        {mode === "search" && query && (
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold">
+              Search Results for:{" "}
+              <span className="font-mono p-1 bg-muted rounded">"{query}"</span>
+            </h2>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           {renderContent()}
         </div>
 
-        {/* Controls at the bottom */}
+        {/* Controls at the bottom (will be hidden in search mode) */}
         <div className="flex justify-center mt-12">
           {!isLoading && mode === "random" && videos.length > 0 && (
             <Button onClick={fetchVideos} className="retro-button">
@@ -172,8 +233,8 @@ const VideoGrid = () => {
           )}
 
           {!isLoading && mode === "latest" && totalPages > 1 && (
+            // ... (Pagination remains unchanged)
             <div className="flex items-center gap-4">
-              {/* Pagination controls also use <Link> */}
               <Button asChild disabled={currentPage <= 1}>
                 <Link to={`/latest/${currentPage - 1}`}>
                   <ArrowLeft className="w-4 h-4" />

@@ -230,4 +230,54 @@
       transform: translateX(100%);
     }
   }
+
+    /* Sonic-Themed Search Bar */
+   .sonic-search-bar {
+    @apply bg-background/50 border-2 border-[#FFB800] rounded-full text-foreground placeholder:text-yellow-200/50;
+    font-family: 'Press Start 2P', monospace;
+    text-shadow: 1px 1px 2px hsl(var(--background));
+    box-shadow: inset 0 0 5px hsl(var(--background) / 0.8), 0 0 5px hsl(var(--background));
+    transition: all 0.2s ease-in-out;
+    padding-left: 2.75rem;
+    padding-right: 2.75rem; 
+  }
+
+  .sonic-search-bar:focus {
+    @apply outline-none ring-0;
+    border-color: #FFD700; /* Brighter gold on focus */
+    box-shadow: inset 0 0 8px hsl(var(--background) / 0.5), 0 0 10px #FFD700, 0 0 20px #FFD700;
+  }
+
+   /* Container for the ring icons */
+  .sonic-search-icon-container {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 pointer-events-none;
+    animation: icon-bob 3s ease-in-out infinite;
+  }
+  
+  /* Shared styles for both ring images */
+  .ring-static, .ring-spinning {
+    @apply absolute top-0 left-0 w-full h-full transition-opacity duration-300;
+  }
+  
+  /* By default, the static ring is visible and the spinning one is hidden */
+  .ring-static {
+    opacity: 1;
+  }
+  .ring-spinning {
+    opacity: 0;
+  }
+  
+  /* When the form is focused (`:focus-within`), flip the opacities */
+  .group:focus-within .ring-static {
+    opacity: 0;
+  }
+  .group:focus-within .ring-spinning {
+    opacity: 1;
+  }
+
+  .search-clear-button {
+    @apply absolute right-4 top-1/2 -translate-y-1/2 z-10;
+    @apply text-muted-foreground/50 hover:text-accent transition-colors duration-200;
+  }
+
 }
