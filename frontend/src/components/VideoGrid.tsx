@@ -6,7 +6,6 @@ import {
   ArrowRight,
   Shuffle,
   List,
-  AlertTriangle, // 👈 Import an icon for errors
   Settings, // 👈 Import an icon for settings
 } from "lucide-react";
 import api from "../lib/api";
