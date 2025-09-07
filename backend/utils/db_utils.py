@@ -171,7 +171,7 @@ def search_videos_by_title(query: str):
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT  v.id, v.title, v.url, v.poster_url, v.preview_path
+            SELECT  v.id, v.title, v.url, v.poster_url, v.preview_path, v.preview_id
             FROM videos_fts f
             JOIN videos v ON v.id = f.rowid
             WHERE videos_fts MATCH ?
