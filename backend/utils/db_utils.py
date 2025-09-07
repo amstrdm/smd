@@ -68,6 +68,9 @@ def update_link_to_ready(
     preview_id: str, title: str, poster_url: str | None, preview_path: str | None
 ):
     """Updates a link's status to 'ready' and populates its data."""
+    print(f"\n--- Starting update_link_to_ready for preview_id: {preview_id} ---")
+    print(f"Received Title: '{title}'")
+
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -79,15 +82,41 @@ def update_link_to_ready(
             """,
             (title, poster_url, preview_path, preview_id),
         )
-        video_id = cursor.lastrowid
         conn.commit()
-        if title:
-            cursor.execute(
-                "INSERT INTO videos_fts(rowid, title) VALUES(?, ?)", (video_id, title)
+        print("Step 1: Successfully updated video status to 'ready'.")
+
+        cursor.execute("SELECT id from videos WHERE preview_id = ?", (preview_id,))
+        result = cursor.fetchone()
+        print(f"Step 2: Fetched video record from DB. Result: {result}")
+
+        if result and title:
+            video_id = result["id"]
+            print(
+                f"Step 3: Condition met. Attempting to update FTS for video_id: {video_id} with title: '{title}'"
             )
-            conn.commit()
+            try:
+                cursor.execute(
+                    "REPLACE INTO videos_fts(rowid, title) VALUES(?, ?)",
+                    (video_id, title),
+                )
+                conn.commit()
+                print("Step 4: SUCCESSFULLY updated videos_fts table.")
+            except sqlite3.Error as e:
+                print(
+                    f"!!!!!!!!!! STEP 4 FAILED: Error updating FTS table: {e} !!!!!!!!!!!"
+                )
+        else:
+            print(
+                "!!!!!!!!!! SKIPPING FTS update because 'result' was empty or 'title' was blank. !!!!!!!!!!!"
+            )
+
+    except Exception as e:
+        print(
+            f"!!!!!!!!!! An unexpected error occurred in update_link_to_ready: {e} !!!!!!!!!!!"
+        )
     finally:
         conn.close()
+        print("--- Finished update_link_to_ready ---")
 
 
 def update_link_to_failed(preview_id: str, error_msg: str):
