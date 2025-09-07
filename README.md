@@ -35,5 +35,6 @@ stuff that I'm aware of and should be done at some point but am too lazy to do r
 
   - tracking video_download and processing status and display in frontend alongside failed uploads
 
-- using UUIDs for unique ids
-  - see comment in upload.py
+- use triggers for keeping `videos_fts` and `videos` table in sync
+
+  - currently we manually insert the values which is not a robust approach we should let the DB do this
