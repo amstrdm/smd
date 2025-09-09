@@ -28,7 +28,14 @@ const Layout = () => {
       {/* Settings Dialog */}
       <SettingsDialog /> {/* Render the settings dialog */}
       <footer className="container mx-auto px-4 py-8 border-t border-border/50">
-        {/* ... footer content ... */}
+        <div className="text-center text-muted-foreground text-sm">
+          <p>&gt; SMD - Sonic Media Displayer v1.0</p>
+          <p className="mt-1 justify-center max-w-xl mx-auto">
+            Sonic don’t diversify your portfolio with derivatives to shield
+            against downside risk while speculating on the Large Swine futures
+            market!
+          </p>
+        </div>
       </footer>
     </div>
   );
