@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Sonic Logo](frontend/public/sonic.png)
+<img src="frontend/public/sonic.jpg" alt="Sonic Logo" width="200" height="200" />
 
 **A retro-styled video collection management system with automatic preview generation**
 
@@ -13,6 +13,37 @@
 
 </div>
 
+## FAQ
+
+**Most of this Readme is pretty standard so here are some more personal statements**
+
+### Why did you build this?
+
+This might be one of the most useless projects for anyone but me ever. I store a bunch of videos from sites that aren't just youtube as links. Bookmarks don't give me an idea of what the videos are about after not having seen them in a while so they aren't ideal. I've been wanting to solve this for some time since it just bothered me and i wanted to be able to get a quick preview of my videos without having to click the links every single time so I did this. Will anyone but me probably ever use it? Probably not. But that's why I decided to make the design something I enjoyed and I like this retro aesthetic a lot. Plus Sonics just cool. Again: Are a bunch of Gifs on a website outdated and unappealing to most users? Yes. Do I like it? A lot.
+
+### Your implementation of -*insert random feature*- really isn't ideal you know?
+
+Yes. 
+
+No seriously I'm aware most of this isn't ideal or my best work. I usually enjoy making stuff as optimal as possible and "over engineering" it but in this case I wrote most of this code at 4 AM just trying to get a working version done to see how it would look. This whole project was built in a couple of days and isn't supposed to be super efficient or anything. This is the first time I actually had some sort of fun doing Frontend Design so I put surprisingly much time into that. That being said if you scroll down to the end of this Readme you'll find a "lazy to do list". Im going to do the stuff in there eventually since I do enjoy optimization but in case there is stil stuff left on it feel free to fix it.
+
+### What's up with the generation of the preview videos?
+
+To this day I haven't been able to find a site that implemented the preview of videos exactly how I would like it so I took this chance to do it myself. The length of the preview video scales in a non linear way in regards to the length of the original video. Assuming each "excerpt" we combine for the preview video is one second long I came up with this formula to calculate the length of the preview video:
+
+`N = round(BaseClips + ScalingFactor * sqrt(DurationInMinutes))*`
+
+I'm very happy with this implementation it's great.
+
+### What does the Sentence in the Footer mean?
+
+Either you know or you don't. But realistically I'm the only one finding that joke funny.
+
+### Why sonic?
+
+Mimimimi, because he's fast and cool and blue thats why. 
+
+![Sonic Fortnite Dancing](frontend/src/assets/fortnite-dance-sonic.gif)
 ## 🎮 Overview
 
 Sonic Media Database is a modern web application that allows you to collect, organize, and browse video content from various platforms. The system automatically downloads videos, generates preview clips, and provides a beautiful retro-themed interface inspired by classic Sonic the Hedgehog games.
@@ -383,42 +414,41 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 ```
 
-## 🤝 Contributing
+## Todo
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes
-4. Add tests if applicable
-5. Commit your changes: `git commit -m "Add feature"`
-6. Push to the branch: `git push origin feature-name`
-7. Submit a pull request
+### Index Page
 
-## 📝 License
+- let user enter backend url and password into frontend
+- configure backend so that you can configure it to actually have multiple databases. Essentially multiple content paths with databases and preview videos that are then exposed through different routes. That way a user can hit that specific route and will be able to interact with that specific database.
+- add ability to edit an entry
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Lazy Todo
 
-## 🙏 Acknowledgments
+stuff that I'm aware of and should be done at some point but am too lazy to do rn
 
-- **Sonic the Hedgehog** - For the amazing retro aesthetic inspiration
-- **FastAPI** - For the excellent Python web framework
-- **React** - For the powerful frontend library
-- **FFmpeg** - For robust video processing capabilities
-- **Tailwind CSS** - For the utility-first CSS framework
+- using async for I/O bound tasks
 
-## 📞 Support
+  - Install httpx for async requests: pip install httpx.
 
-If you encounter any issues or have questions:
+  - Convert functions to async def and use await for network calls.
 
-1. Check the [Troubleshooting](#-troubleshooting) section
-2. Search existing [Issues](https://github.com/your-repo/issues)
-3. Create a new issue with detailed information
-4. Join our community discussions
+  - Use asyncio versions of libraries where possible (e.g., playwright.async_api).
+
+- better error handling
+
+  - wrap in try exept and update database status when something goes wrong
+
+- status tracking
+
+  - tracking video_download and processing status and display in frontend alongside failed uploads
+
+- use triggers for keeping `videos_fts` and `videos` table in sync
+
+  - currently we manually insert the values which is not a robust approach we should let the DB do this
 
 ---
 
 <div align="center">
-
-**Made with ❤️ and lots of rings**
 
 *Gotta go fast!* 🏃‍♂️💨
 
