@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import latest, manage, preview, random, search, upload
+from routes import upload
+from routes.manage import delete
+from routes.preview import preview
+from routes.videos import latest, random, search
 
 app = FastAPI()
 
@@ -15,7 +18,7 @@ app.add_middleware(
 )
 
 app.include_router(upload.router, prefix="/api")
-app.include_router(manage.router, prefix="/api")
+app.include_router(delete.router, prefix="/api")
 
 # Routes that return video elements
 app.include_router(preview.router, prefix="/api")
