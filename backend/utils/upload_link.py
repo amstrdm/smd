@@ -137,7 +137,7 @@ def download_video(soup: BeautifulSoup, url: str, headers: dict):
 
         logger.info(f"Video download completed: {save_path}")
         return save_path
-    
+
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to download video from {video_src}: {e}")
         return None
@@ -211,13 +211,13 @@ def generate_preview_from_video(
 @celery_app.task
 def process_link_task(url: str, preview_id: str):
     logger.info(f"Starting processing task for URL: {url}, preview_id: {preview_id}")
-    
+
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
         soup = None
-        
+
         try:
             logger.debug(f"Fetching page content for URL: {url}")
             response = requests.get(url, headers=headers, timeout=20)
@@ -270,7 +270,9 @@ def process_link_task(url: str, preview_id: str):
             logger.info(f"Video downloaded successfully, generating preview")
             current_dir = os.path.dirname(os.path.abspath(__file__))  # utils/
             parent_dir = os.path.dirname(current_dir)  # backend/
-            base_preview_path = os.path.join(parent_dir, "routes", "preview_videos")
+            base_preview_path = os.path.join(
+                parent_dir, "routes", "preview", "preview_videos"
+            )
             os.makedirs(base_preview_path, exist_ok=True)
 
             file_id = get_url_identifier(url)
@@ -285,7 +287,9 @@ def process_link_task(url: str, preview_id: str):
         final_preview_path = preview_path_value
         update_link_to_ready(preview_id, title, final_poster_url, final_preview_path)
         logger.info(f"SUCCESS: Updated DB for URL: {url}, preview_id: {preview_id}")
-        
+
     except Exception as e:
-        logger.error(f"FAILED to process URL: {url}, preview_id: {preview_id}, error: {e}")
+        logger.error(
+            f"FAILED to process URL: {url}, preview_id: {preview_id}, error: {e}"
+        )
         update_link_to_failed(preview_id, str(e))
