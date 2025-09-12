@@ -11,6 +11,10 @@ from bs4.element import Tag
 from celery import Celery
 from playwright.sync_api import TimeoutError, sync_playwright
 from utils.db_utils import update_link_to_failed, update_link_to_ready
+from utils.logging_config import get_logger
+
+# Initialize logger for upload processing
+logger = get_logger("utils.upload_link")
 
 # Configure Celery
 celery_app = Celery(
@@ -86,6 +90,7 @@ def fetch_page_with_playwright(url: str):
 
 
 def download_video(soup: BeautifulSoup, url: str, headers: dict):
+    logger.debug("Starting video source extraction")
     video_src = None
     video_tag = soup.find("video")
 
@@ -100,36 +105,42 @@ def download_video(soup: BeautifulSoup, url: str, headers: dict):
             if isinstance(source_tag, Tag):
                 video_src = source_tag.get("src")
 
-    print(video_src)
+    logger.debug(f"Found video source from HTML: {video_src}")
     if not video_src:
+        logger.debug("No video source found in HTML, trying Playwright")
         video_src = get_video_src_with_playwright(url)
-        print("SRC:", video_src)
+        logger.debug(f"Found video source with Playwright: {video_src}")
     if not video_src:
-        print("Couldn't find video source")
+        logger.error("Could not find video source")
         return None
 
     if not isinstance(video_src, str):
-        print("Okay genuinely what kind of fucking video are you looking at")
+        logger.error(f"Invalid video source type: {type(video_src)}")
         return None
 
     if video_src.startswith("//"):
         video_src = "https:" + video_src
+        logger.debug(f"Fixed protocol-relative URL: {video_src}")
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    with requests.get(video_src, headers=headers, stream=True) as r:
-        r.raise_for_status()
-        tmp_path = os.path.join(current_dir, "tmp")
-        os.makedirs(tmp_path, exist_ok=True)
-        save_path = os.path.join(tmp_path, get_url_identifier(video_src))
+    try:
+        with requests.get(video_src, headers=headers, stream=True) as r:
+            r.raise_for_status()
+            tmp_path = os.path.join(current_dir, "tmp")
+            os.makedirs(tmp_path, exist_ok=True)
+            save_path = os.path.join(tmp_path, get_url_identifier(video_src))
 
-        with open(save_path, "wb") as f:
-            print(f"Downloading and saving video to {save_path}")
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+            with open(save_path, "wb") as f:
+                logger.info(f"Downloading video to {save_path}")
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
 
-    print(f"Download complete for {save_path}")
-
-    return save_path
+        logger.info(f"Video download completed: {save_path}")
+        return save_path
+    
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to download video from {video_src}: {e}")
+        return None
 
 
 def generate_preview_from_video(
@@ -160,7 +171,7 @@ def generate_preview_from_video(
     """
 
     try:
-        print(f"Processing {input_path} to create preview...")
+        logger.info(f"Processing {input_path} to create preview...")
         # Get video duration
         probe = ffmpeg.probe(input_path)
         duration = float(probe["format"]["duration"])
@@ -170,7 +181,7 @@ def generate_preview_from_video(
         num_clips = math.floor(BaseClips + ScalingFactor * math.sqrt(duration_min))
 
         num_clips = min(num_clips, n_cap)
-        print(f"Video Duration: {duration:.2f}s. Generating {num_clips} clips.")
+        logger.info(f"Video Duration: {duration:.2f}s. Generating {num_clips} clips.")
 
         interval = duration / num_clips
         clips = []
@@ -186,39 +197,48 @@ def generate_preview_from_video(
             .output(output_path, movflags="faststart")
             .run(overwrite_output=True, quiet=True)
         )
-        print(f"Preview saved succesfully to {output_path}")
+        logger.info(f"Preview saved successfully to {output_path}")
         return file_id
     except ffmpeg.Error as e:
-        print(f"FFmpeg Error: {e.stderr.decode()}")
+        logger.error(f"FFmpeg Error: {e.stderr.decode()}")
         return None
     finally:
         if os.path.exists(input_path):
             os.remove(input_path)
-            print(f"Cleaned up temporary video at {input_path}")
+            logger.debug(f"Cleaned up temporary video at {input_path}")
 
 
 @celery_app.task
 def process_link_task(url: str, preview_id: str):
+    logger.info(f"Starting processing task for URL: {url}, preview_id: {preview_id}")
+    
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
         soup = None
+        
         try:
+            logger.debug(f"Fetching page content for URL: {url}")
             response = requests.get(url, headers=headers, timeout=20)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, features="html.parser")
+            logger.debug("Successfully fetched page content with requests")
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 403:
+                logger.warning(f"HTTP 403 error, trying Playwright for URL: {url}")
                 soup = fetch_page_with_playwright(url)
+                logger.debug("Successfully fetched page content with Playwright")
             else:
+                logger.error(f"HTTP error {e.response.status_code} for URL: {url}")
                 raise
 
         if not soup:
             raise ValueError("Could not fetch page content")
 
+        # Extract and clean title
         if soup.title and soup.title.string:
-            # clean up title
+            logger.debug(f"Extracting title from page: {soup.title.string}")
             domain_match = re.search(r"(?:https?://)?(?:www\.)?([^/]+)", url)
             if not domain_match:
                 title = soup.title.string
@@ -228,19 +248,26 @@ def process_link_task(url: str, preview_id: str):
                 title = re.sub(
                     pattern_to_remove, "", soup.title.string, flags=re.IGNORECASE
                 ).strip()
+            logger.info(f"Extracted title: '{title}'")
         else:
             title = "N/A"
+            logger.warning("No title found on page")
 
+        # Extract poster URL
         poster_url_value = get_poster_url_from_video(soup)
         if isinstance(poster_url_value, list):
             final_poster_url = poster_url_value[0] if poster_url_value else None
         else:
             final_poster_url = poster_url_value
+        logger.debug(f"Extracted poster URL: {final_poster_url}")
 
+        # Download video
+        logger.info(f"Starting video download for URL: {url}")
         save_path = download_video(soup, url, headers=headers)
 
         preview_path_value = None
         if save_path:
+            logger.info(f"Video downloaded successfully, generating preview")
             current_dir = os.path.dirname(os.path.abspath(__file__))  # utils/
             parent_dir = os.path.dirname(current_dir)  # backend/
             base_preview_path = os.path.join(parent_dir, "routes", "preview_videos")
@@ -251,10 +278,14 @@ def process_link_task(url: str, preview_id: str):
             preview_path_value = generate_preview_from_video(
                 save_path, preview_save_path, file_id
             )
+            logger.info(f"Preview generated successfully: {preview_path_value}")
+        else:
+            logger.warning("No video downloaded, skipping preview generation")
 
         final_preview_path = preview_path_value
         update_link_to_ready(preview_id, title, final_poster_url, final_preview_path)
-        print(f"SUCCESS: Updated DB for {url}")
+        logger.info(f"SUCCESS: Updated DB for URL: {url}, preview_id: {preview_id}")
+        
     except Exception as e:
-        print(f"FAILED to process {url}. Error: {e}")
+        logger.error(f"FAILED to process URL: {url}, preview_id: {preview_id}, error: {e}")
         update_link_to_failed(preview_id, str(e))
