@@ -15,7 +15,7 @@
 
 ## FAQ
 
-**Most of this Readme is pretty standard so here are some more personal statements**
+**Pretty much the entire README is AI generated excluding the FAQ and TODO section. I'm mostly too lazy to write a structured README from top to bottom for a project that's so unnecessary**
 
 ### Why did you build this?
 
@@ -59,19 +59,40 @@ Sonic Media Database is a modern web application that allows you to collect, org
 - 🗄️ **SQLite Database**: Lightweight, file-based database for easy deployment
 - 🌐 **Multi-platform Support**: Works with various video hosting platforms
 
-## 🏗️ Architecture
+## Todo
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Background    │
-│   (React/TS)    │◄──►│   (FastAPI)     │◄──►│   Tasks         │
-│                 │    │                 │    │   (Celery)      │
-│ • Video Grid    │    │ • REST API      │    │                 │
-│ • Upload Form   │    │ • SQLite DB     │    │ • Video Download│
-│ • Search        │    │ • File Storage  │    │ • Preview Gen   │
-│ • Settings      │    │ • CORS Support  │    │ • Error Handling│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+### Index Page
+
+- let user enter backend url and password into frontend
+- configure backend so that you can configure it to actually have multiple databases. Essentially multiple content paths with databases and preview videos that are then exposed through different routes. That way a user can hit that specific route and will be able to interact with that specific database.
+- add ability to edit an entry
+
+## Lazy Todo
+
+stuff that I'm aware of and should be done at some point but am too lazy to do rn
+
+- using async for I/O bound tasks
+
+  - Install httpx for async requests: pip install httpx.
+
+  - Convert functions to async def and use await for network calls.
+
+  - Use asyncio versions of libraries where possible (e.g., playwright.async_api).
+
+- encryption
+   - I don't like that the database data is unencrypted. It is just links so really theres no concern but I don't like the thought of it sitting on a server unencrypted. I'd like the preview videos to be encrypted as well. Again this is something I think nobody would have an isue with but me but I like it. We could probably just do full file AES encryption here since the preview videos are capped at 30 seconds. We could technically do Encrypted HLS/DASH Streaming but I honestly feel that's overkill for the length of the videos. Assuming we implement the password access we could use the password the user sets to cryptographically end-to-end encrypt all of the data in a secure manner by using key derivation. This of course would have some issues like the user changing the password being a pain. However we could fix this by not deriving the AES key for encryption of the files from the password directly. Instead we generate a master key for the user and then encrypt that master key using a derivation of the password. This way when the user changes his password we'll only have to reencrypt the Master key and not all the files.
+
+- better error handling
+
+  - wrap in try exept and update database status when something goes wrong
+
+- status tracking
+
+  - tracking video_download and processing status and display in frontend alongside failed uploads
+
+- use triggers for keeping `videos_fts` and `videos` table in sync
+
+  - currently we manually insert the values which is not a robust approach we should let the DB do this
 
 ## 🚀 Quick Start
 
@@ -413,38 +434,6 @@ Enable debug logging:
 import logging
 logging.basicConfig(level=logging.DEBUG)
 ```
-
-## Todo
-
-### Index Page
-
-- let user enter backend url and password into frontend
-- configure backend so that you can configure it to actually have multiple databases. Essentially multiple content paths with databases and preview videos that are then exposed through different routes. That way a user can hit that specific route and will be able to interact with that specific database.
-- add ability to edit an entry
-
-## Lazy Todo
-
-stuff that I'm aware of and should be done at some point but am too lazy to do rn
-
-- using async for I/O bound tasks
-
-  - Install httpx for async requests: pip install httpx.
-
-  - Convert functions to async def and use await for network calls.
-
-  - Use asyncio versions of libraries where possible (e.g., playwright.async_api).
-
-- better error handling
-
-  - wrap in try exept and update database status when something goes wrong
-
-- status tracking
-
-  - tracking video_download and processing status and display in frontend alongside failed uploads
-
-- use triggers for keeping `videos_fts` and `videos` table in sync
-
-  - currently we manually insert the values which is not a robust approach we should let the DB do this
 
 ---
 
